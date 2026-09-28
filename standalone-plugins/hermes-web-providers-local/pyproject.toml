@@ -1,0 +1,36 @@
+[project]
+name = "hermes-web-providers-local"
+version = "1.0.0"
+description = "Local-first web backends for Hermes: crawl4ai browser extraction and on-demand SearXNG"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "ronail" }]
+keywords = ["hermes", "web", "crawl4ai", "searxng", "extraction"]
+
+# crawl4ai ships the Playwright-driven browser stack. `crawl4ai install` still
+# has to provision the Chromium binary once after install (see README) — the
+# dependency below only makes the Python package importable.
+dependencies = [
+    "crawl4ai>=0.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ronail/hermes-agent/tree/main/standalone-plugins/hermes-web-providers-local"
+
+# Hermes loads this package through the `hermes_agent.plugins` entry point.
+# The module exposes a top-level `register(ctx)`.
+[project.entry-points."hermes_agent.plugins"]
+hermes-web-providers-local = "web_providers_local"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# The plugin package is `web_providers_local/`; plugin.yaml sits beside it and
+# is read from the installed package data.
+packages = ["web_providers_local"]
+
+[tool.setuptools.package-data]
+web_providers_local = ["plugin.yaml"]
