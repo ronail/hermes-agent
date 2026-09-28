@@ -1,8 +1,9 @@
-# hermes-web-local-stack
+# crawl4ai-searxng
 
-Local-first web backends for [Hermes](https://hermes-agent.nousresearch.com):
-**crawl4ai** browser extraction and **on-demand SearXNG**. No API keys, no
-hosted service, no per-request billing — both run entirely on your machine.
+Two local web backends for [Hermes](https://hermes-agent.nousresearch.com) in
+one plugin: **crawl4ai** for browser-backed page extraction and **SearXNG** for
+on-demand local search. No API keys, no hosted service, no per-request billing —
+both run entirely on your machine.
 
 | Provider | Capability | What it does |
 |---|---|---|
@@ -16,15 +17,15 @@ bundled backends via `web.search_backend` / `web.extract_backend`.
 
 ```bash
 # From a checkout of this repo
-pip install ./standalone-plugins/hermes-web-local-stack
+pip install ./standalone-plugins/crawl4ai-searxng
 ```
 
 Or copy the plugin directory into your Hermes home and enable it:
 
 ```bash
-cp -r standalone-plugins/hermes-web-local-stack/hermes_web_local_stack \
-      ~/.hermes/plugins/web/hermes-web-local-stack
-hermes plugins enable hermes-web-local-stack
+cp -r standalone-plugins/crawl4ai-searxng/crawl4ai_searxng \
+      ~/.hermes/plugins/web/crawl4ai-searxng
+hermes plugins enable crawl4ai-searxng
 ```
 
 The pip route declares `crawl4ai` as a dependency, so Hermes' package manager
@@ -96,15 +97,15 @@ response shape, no-network availability probe, per-URL error isolation).
 To validate the plugin the way Hermes does:
 
 ```bash
-hermes plugins validate standalone-plugins/hermes-web-local-stack/hermes_web_local_stack
+hermes plugins validate standalone-plugins/crawl4ai-searxng/crawl4ai_searxng
 ```
 
 ## Layout
 
 ```
-hermes-web-local-stack/
+crawl4ai-searxng/
 ├── pyproject.toml                    # deps + hermes_agent.plugins entry point
-├── hermes_web_local_stack/           # the installable plugin directory
+├── crawl4ai_searxng/           # the installable plugin directory
 │   ├── __init__.py                   # register(ctx) — registers both providers
 │   ├── plugin.yaml                   # manifest: kind: backend
 │   ├── crawl4ai_provider.py          # browser-backed extraction
@@ -113,7 +114,7 @@ hermes-web-local-stack/
 └── tests/test_providers.py
 ```
 
-`hermes_web_local_stack/` is both the pip package and a drop-in directory plugin —
+`crawl4ai_searxng/` is both the pip package and a drop-in directory plugin —
 `plugin.yaml` and `__init__.py` sit side by side, which is what
 `hermes plugins validate` requires.
 

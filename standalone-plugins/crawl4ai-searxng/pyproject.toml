@@ -1,5 +1,5 @@
 [project]
-name = "hermes-web-local-stack"
+name = "crawl4ai-searxng"
 version = "1.0.0"
 description = "Local-first web backends for Hermes: crawl4ai browser extraction and on-demand SearXNG"
 readme = "README.md"
@@ -16,21 +16,21 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ronail/hermes-agent/tree/main/standalone-plugins/hermes-web-local-stack"
+Homepage = "https://github.com/ronail/hermes-agent/tree/main/standalone-plugins/crawl4ai-searxng"
 
 # Hermes loads this package through the `hermes_agent.plugins` entry point.
 # The module exposes a top-level `register(ctx)`.
 [project.entry-points."hermes_agent.plugins"]
-hermes-web-local-stack = "hermes_web_local_stack"
+crawl4ai-searxng = "crawl4ai_searxng"
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-# The plugin package is `hermes_web_local_stack/`; plugin.yaml sits beside it
+# The plugin package is `crawl4ai_searxng/`; plugin.yaml sits beside it
 # and is read from the installed package data.
-packages = ["hermes_web_local_stack"]
+packages = ["crawl4ai_searxng"]
 
 [tool.setuptools.package-data]
-hermes_web_local_stack = ["plugin.yaml"]
+crawl4ai_searxng = ["plugin.yaml"]
