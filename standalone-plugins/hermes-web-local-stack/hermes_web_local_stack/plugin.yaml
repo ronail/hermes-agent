@@ -1,10 +1,10 @@
-name: hermes-web-providers-local
+name: hermes-web-local-stack
 version: 1.0.0
 description: "Local-first web backends for Hermes: crawl4ai browser extraction and on-demand SearXNG. No API keys, no hosted services."
 author: ronail
 kind: backend
 license: MIT
-homepage: https://github.com/ronail/hermes-agent/tree/main/standalone-plugins/hermes-web-providers-local
+homepage: https://github.com/ronail/hermes-agent/tree/main/standalone-plugins/hermes-web-local-stack
 
 # Provider names registered by register(ctx) — must match each provider's
 # `name` property, since these are the ids used in web.search_backend /

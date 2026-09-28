@@ -1,4 +1,4 @@
-# hermes-web-providers-local
+# hermes-web-local-stack
 
 Local-first web backends for [Hermes](https://hermes-agent.nousresearch.com):
 **crawl4ai** browser extraction and **on-demand SearXNG**. No API keys, no
@@ -16,15 +16,15 @@ bundled backends via `web.search_backend` / `web.extract_backend`.
 
 ```bash
 # From a checkout of this repo
-pip install ./standalone-plugins/hermes-web-providers-local
+pip install ./standalone-plugins/hermes-web-local-stack
 ```
 
 Or copy the plugin directory into your Hermes home and enable it:
 
 ```bash
-cp -r standalone-plugins/hermes-web-providers-local/web_providers_local \
-      ~/.hermes/plugins/web/local-web-providers
-hermes plugins enable local-web-providers
+cp -r standalone-plugins/hermes-web-local-stack/hermes_web_local_stack \
+      ~/.hermes/plugins/web/hermes-web-local-stack
+hermes plugins enable hermes-web-local-stack
 ```
 
 The pip route declares `crawl4ai` as a dependency, so Hermes' package manager
@@ -96,15 +96,15 @@ response shape, no-network availability probe, per-URL error isolation).
 To validate the plugin the way Hermes does:
 
 ```bash
-hermes plugins validate standalone-plugins/hermes-web-providers-local/web_providers_local
+hermes plugins validate standalone-plugins/hermes-web-local-stack/hermes_web_local_stack
 ```
 
 ## Layout
 
 ```
-hermes-web-providers-local/
+hermes-web-local-stack/
 ├── pyproject.toml                    # deps + hermes_agent.plugins entry point
-├── web_providers_local/              # the installable plugin directory
+├── hermes_web_local_stack/           # the installable plugin directory
 │   ├── __init__.py                   # register(ctx) — registers both providers
 │   ├── plugin.yaml                   # manifest: kind: backend
 │   ├── crawl4ai_provider.py          # browser-backed extraction
@@ -113,7 +113,7 @@ hermes-web-providers-local/
 └── tests/test_providers.py
 ```
 
-`web_providers_local/` is both the pip package and a drop-in directory plugin —
+`hermes_web_local_stack/` is both the pip package and a drop-in directory plugin —
 `plugin.yaml` and `__init__.py` sit side by side, which is what
 `hermes plugins validate` requires.
 

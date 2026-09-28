@@ -17,11 +17,11 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from web_providers_local.crawl4ai_provider import (  # noqa: E402
+from hermes_web_local_stack.crawl4ai_provider import (  # noqa: E402
     Crawl4aiWebSearchProvider,
     _crawl4ai_importable,
 )
-from web_providers_local.searxng_provider import (  # noqa: E402
+from hermes_web_local_stack.searxng_provider import (  # noqa: E402
     SearXNGLocalWebSearchProvider,
     _run_async,
 )
@@ -40,12 +40,12 @@ class TestCrawl4aiCapabilities:
     def test_is_available_tracks_importability(self, monkeypatch):
         p = Crawl4aiWebSearchProvider()
         monkeypatch.setattr(
-            "web_providers_local.crawl4ai_provider._crawl4ai_importable",
+            "hermes_web_local_stack.crawl4ai_provider._crawl4ai_importable",
             lambda: False,
         )
         assert p.is_available() is False
         monkeypatch.setattr(
-            "web_providers_local.crawl4ai_provider._crawl4ai_importable",
+            "hermes_web_local_stack.crawl4ai_provider._crawl4ai_importable",
             lambda: True,
         )
         assert p.is_available() is True
@@ -83,9 +83,9 @@ class TestCrawl4aiExtract:
             ("https://b.example.com", "# B", "Beta"),
         ]
         with patch(
-            "web_providers_local.crawl4ai_provider._ensure_crawl4ai"
+            "hermes_web_local_stack.crawl4ai_provider._ensure_crawl4ai"
         ), patch(
-            "web_providers_local.crawl4ai_provider._get_crawler",
+            "hermes_web_local_stack.crawl4ai_provider._get_crawler",
             AsyncMock(return_value=self._crawler(pages)),
         ):
             out = asyncio.run(
@@ -110,9 +110,9 @@ class TestCrawl4aiExtract:
         crawler.arun.side_effect = [RuntimeError("navigation failed"), good]
 
         with patch(
-            "web_providers_local.crawl4ai_provider._ensure_crawl4ai"
+            "hermes_web_local_stack.crawl4ai_provider._ensure_crawl4ai"
         ), patch(
-            "web_providers_local.crawl4ai_provider._get_crawler",
+            "hermes_web_local_stack.crawl4ai_provider._get_crawler",
             AsyncMock(return_value=crawler),
         ):
             out = asyncio.run(
@@ -128,7 +128,7 @@ class TestCrawl4aiExtract:
     def test_missing_dependency_yields_error_entries_not_an_exception(self):
         """A provider that cannot start must still return one entry per URL."""
         with patch(
-            "web_providers_local.crawl4ai_provider._ensure_crawl4ai",
+            "hermes_web_local_stack.crawl4ai_provider._ensure_crawl4ai",
             side_effect=RuntimeError("crawl4ai is not installed"),
         ):
             out = asyncio.run(
@@ -174,7 +174,7 @@ def _search_with_response(response) -> dict:
             return response
 
     with patch(
-        "web_providers_local.searxng_lifecycle.SearXNGProcessManager.start",
+        "hermes_web_local_stack.searxng_lifecycle.SearXNGProcessManager.start",
         return_value="http://127.0.0.1:8888",
     ), patch("httpx.AsyncClient", _Client):
         return SearXNGLocalWebSearchProvider().search("hello", limit=5)
@@ -205,7 +205,7 @@ class TestSearxngCapabilities:
 class TestSearxngSearch:
     def test_startup_failure_is_typed_not_raised(self):
         with patch(
-            "web_providers_local.searxng_lifecycle.SearXNGProcessManager.start",
+            "hermes_web_local_stack.searxng_lifecycle.SearXNGProcessManager.start",
             side_effect=RuntimeError("no checkout"),
         ):
             out = SearXNGLocalWebSearchProvider().search("hello")
