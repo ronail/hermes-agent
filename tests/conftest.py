@@ -1531,3 +1531,46 @@ def real_bash() -> str:
             if candidate.exists():
                 return str(candidate)
     return found or "bash"
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _autoload_standalone_opencode_provider():
+    """Load the standalone opencode-zen/go plugin so provider-resolution + reasoning
+    tests resolve to the real standalone profile (its conditional-bypass
+    ``build_api_kwargs_extras`` / ``fetch_account_usage`` logic). The bundled
+    built-in (plugins/model-providers/opencode-zen/) stays untouched in core and
+    is shadowed by the user-tier plugin.
+
+    The standalone repo lives at https://github.com/ronail/opencode-zen-hermes-plugin
+    and ships its bypass as a user-tier plugin. The bundled built-in remains in
+    core; absent the standalone, ``get_provider_profile(...)`` resolves to that
+    built-in (no conditional Bearer), so the autoload loads the standalone to
+    exercise the real bypass.
+
+    Resolved from ``$HERMES_OPENCODE_STANDALONE_PLUGIN`` (an absolute path to the
+    plugin's ``__init__.py``) or the sibling repo checkout
+    (``../opencode-zen-hermes-plugin/__init__.py`` relative to the repo root).
+    No-op when absent (e.g. CI without a checkout) — tests that require the
+    profile skip themselves rather than fail.
+
+    Import is done with ``importlib`` from the FILE path (not the plugin loader),
+    so the standalone ``python_runtime: external`` is NOT engaged — the module only
+    imports core+stdlib at load time (``httpx``/``openai._types`` are lazy and
+    guarded), so it loads in-process during tests. Module load calls
+    ``register_provider(opencode_zen/go)``; ``_discover_providers`` does not clear
+    ``_REGISTRY``, so the registration survives and mirrors into the auth
+    registry at the next ``_sync_auth_registry()``.
+    """
+    import importlib.util
+    path = os.environ.get("HERMES_OPENCODE_STANDALONE_PLUGIN")
+    if not path:
+        _candidate = Path(__file__).resolve().parents[2] / "opencode-zen-hermes-plugin" / "__init__.py"
+        if _candidate.is_file():
+            path = str(_candidate)
+    if not path or not Path(path).is_file():
+        return
+    _spec = importlib.util.spec_from_file_location("hermes_opencode_standalone_provider", path)
+    if _spec is None or _spec.loader is None:
+        return
+    _module = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_module)
