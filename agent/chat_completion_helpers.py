@@ -791,7 +791,14 @@ def _dispatch_nonstreaming_api_request(agent, api_kwargs: dict, *, make_client):
     # request transform. No-op unless this really is the OpenAI SDK, so the
     # MoA facade above and the suite's stand-in clients are unaffected.
     api_kwargs = bypass_chat_sdk_request_transform(api_kwargs, request_client)
-    return request_client.chat.completions.create(**api_kwargs)
+    response = request_client.chat.completions.create(**api_kwargs)
+    # OpenCode free-tier bypass sets stream=True in the body (relay requires it).
+    # The SDK returns a Stream[ChatCompletionChunk] instead of a ChatCompletion;
+    # aggregate it so downstream normalize_response sees a complete response.
+    if api_kwargs.get("stream") and not hasattr(response, "choices"):
+        from agent.auxiliary_client import _aggregate_chat_stream
+        response = _aggregate_chat_stream(response, model=api_kwargs.get("model", "") or "")
+    return response
 
 
 def should_use_direct_api_call(agent) -> bool:
@@ -1256,7 +1263,6 @@ def _codex_silent_hang_hint(agent, api_kwargs: dict) -> Optional[str]:
     return None
 
 
-
 def interruptible_api_call(agent, api_kwargs: dict):
     """Run the API call on a worker thread so the caller can detect interrupts
     without waiting for the full HTTP round-trip. Each worker gets its own
@@ -1433,7 +1439,6 @@ def _build_codex_kwargs(agent, api_messages, tools_for_api, reasoning_config, re
         context_management=context_management, text_verbosity=getattr(agent, "text_verbosity", None))
 
 
-
 def _build_chat_completions_kwargs(agent, api_messages, tools_for_api, reasoning_config, request_overrides, cache_scope_id):
     transport = agent._get_transport()
     tools_for_api = _alias_tool_search_bridge_for_xai(agent, transport, tools_for_api)
@@ -1508,16 +1513,56 @@ def build_api_kwargs(agent, api_messages: list, tools_for_api: list | None = Non
     ``x-opencode-session``, a custom provider's opt-in ``session_affinity_header``) ride on
     every request regardless of transport (chat_completions / codex_responses /
     anthropic_messages). No-op for every other provider.
+
+    OpCode free-tier shaping (``stream=true`` + ``Bearer public`` + ``X-Stainless-*``
+    omission + relay-required tool-name stubs) is intentionally NOT spliced in here.
+    Instead the active provider's ``prepare_tools`` and ``prepare_request_extras`` hooks
+    are invoked below, so the bypass lives in the opencode-zen/opencode-go profile
+    plugins and cannot block a ``hermes update``. These hooks run from this single
+    chokepoint, so shaping is applied on every transport
+    (chat_completions / codex_responses / anthropic_messages) and on both the turn
+    path and the summary/compression path.
     """
     from agent.opencode_affinity import merge_session_affinity_headers
 
     kwargs = _build_api_kwargs_for_mode(agent, api_messages, tools_for_api)
-    return merge_session_affinity_headers(
+    kwargs = merge_session_affinity_headers(
         kwargs,
         getattr(agent, "provider", None),
         getattr(agent, "base_url", None),
         getattr(agent, "session_id", None),
     )
+    # Delegate provider-specific request shaping (tool stubs + any free-tier extras)
+    # to the active profile. The base ProviderProfile implements both hooks as
+    # no-ops, so this is a no-op for providers that don't opt in.
+    profile = _resolve_request_profile(agent)
+    if profile is not None:
+        ctx = {
+            "model": kwargs.get("model") or getattr(agent, "model", "") or "",
+            "base_url": getattr(agent, "base_url", None),
+            "provider": getattr(agent, "provider", None),
+            "session_id": getattr(agent, "session_id", None),
+            "turn_id": getattr(agent, "turn_id", None),
+            "api_key": getattr(agent, "api_key", None),
+        }
+        kwargs["tools"] = profile.prepare_tools(kwargs.get("tools") or [], **ctx)
+        for key, value in profile.prepare_request_extras(**ctx).items():
+            if key == "extra_headers" and isinstance(value, dict):
+                # Merge additively so the affinity headers set above are preserved
+                # rather than replaced.
+                kwargs.setdefault("extra_headers", {}).update(value)
+            else:
+                kwargs[key] = value
+    return kwargs
+
+
+def _resolve_request_profile(agent):
+    """Resolve the active provider's ProviderProfile, or None if unregistered."""
+    try:
+        from providers import get_provider_profile
+        return get_provider_profile(agent.provider)
+    except Exception:
+        return None
 
 
 def _build_api_kwargs_for_mode(agent, api_messages: list, tools_for_api: list | None = None) -> dict:
