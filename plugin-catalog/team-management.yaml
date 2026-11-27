@@ -1,0 +1,26 @@
+name: team-management
+repo: https://github.com/ronail/hermes-team-management
+sha: PLACEHOLDER_SHA_REPLACE_WITH_ACTUAL_COMMIT_SHA
+subdir: ""
+title: Team Management
+description: "A Hermes Desktop page for managing AI agent teams: roster CRUD, live agent status grid, unified approvals queue (blocked Kanban cards, permission requests, cron failures), embedded Kanban board with assign/reassign drawer, and per-agent metrics (success rate, turn time, tool errors, token cost). Fork of agents-hub with management-first UI at /team-management."
+maintainer: ronail
+tier: community
+category: desktop
+requires_hermes: ">=0.22.5"
+docs_url: https://github.com/ronail/hermes-team-management#readme
+version: "1.0.0"
+image: https://raw.githubusercontent.com/ronail/hermes-team-management/main/docs/banner.png
+screenshots:
+  - https://raw.githubusercontent.com/ronail/hermes-team-management/main/docs/screenshots/roster.png
+  - https://raw.githubusercontent.com/ronail/hermes-team-management/main/docs/screenshots/live-status.png
+  - https://raw.githubusercontent.com/ronail/hermes-team-management/main/docs/screenshots/approvals.png
+  - https://raw.githubusercontent.com/ronail/hermes-team-management/main/docs/screenshots/kanban.png
+  - https://raw.githubusercontent.com/ronail/hermes-team-management/main/docs/screenshots/metrics.png
+readme: true
+platforms: []
+capabilities:
+  provides_tools: []
+  provides_hooks: []
+  provides_middleware: []
+  requires_env: []
